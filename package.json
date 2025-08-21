@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/coopeenortol/plataforma.git"
+    "url": "https://github.com/robertfenyiner/Coope.git"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

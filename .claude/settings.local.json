@@ -13,7 +13,10 @@
       "Bash(npm run reload:server:*)",
       "Bash(pm2 reload:*)",
       "Bash(chmod:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(git remote:*)"
     ],
     "deny": []
   }

@@ -34,7 +34,7 @@ error() {
 # Verificar que se ejecuta como root
 if [[ $EUID -eq 0 ]]; then
    error "Este script no debe ejecutarse como root"
-   echo "Ejecuta: sudo bash install-coopeenortol-ubuntu.sh"
+   echo "Ejecuta: bash install-coopeenortol-ubuntu.sh"
    exit 1
 fi
 
@@ -215,7 +215,7 @@ cd $APP_DIR
 if [ -d ".git" ]; then
     git pull origin main
 else
-    git clone https://github.com/coopeenortol/plataforma.git .
+    git clone https://github.com/robertfenyiner/Coope.git .
 fi
 EOF
 

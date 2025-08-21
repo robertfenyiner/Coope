@@ -9,12 +9,14 @@ import {
   FiX,
   FiLogOut,
   FiFileText,
-  FiSettings
+  FiSettings,
+  FiUsers
 } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { getInitials } from '../utils/format';
 import ThemeToggle from './ThemeToggle';
 import { getProfilePictureUrl } from '../utils/config';
+import Logo from './Logo';
 
 const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +25,7 @@ const Layout: React.FC = () => {
 
   const baseNavigation = [
     { name: 'Inicio', href: '/dashboard', icon: FiHome },
+    { name: 'Asociados', href: '/asociados', icon: FiUsers },
     { name: 'Gastos', href: '/expenses', icon: FiDollarSign },
     { name: 'Categorías', href: '/categories', icon: FiTag },
     { name: 'Reportes', href: '/reports', icon: FiFileText },
@@ -63,7 +66,7 @@ const Layout: React.FC = () => {
         style={{ height: '100vh' }}
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">Gastos Robert</h1>
+          <Logo size="sm" className="flex-shrink-0" />
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"

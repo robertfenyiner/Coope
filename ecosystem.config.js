@@ -1,8 +1,8 @@
 module.exports = {
   apps: [{
-    name: 'gastos-robert-api',
+    name: 'coopeenortol-server',
     script: './server/index.js',
-    cwd: process.cwd() || '/home/nina/gastos-robert',
+    cwd: process.cwd() || '/opt/coopeenortol',
     instances: 1,
     exec_mode: 'fork',
     env: {
@@ -10,9 +10,9 @@ module.exports = {
       PORT: 5000
     },
     // Logging configuration
-    error_file: '/var/log/gastos-robert/error.log',
-    out_file: '/var/log/gastos-robert/access.log',
-    log_file: '/var/log/gastos-robert/combined.log',
+    error_file: '/var/log/coopeenortol/error.log',
+    out_file: '/var/log/coopeenortol/access.log',
+    log_file: '/var/log/coopeenortol/combined.log',
     time: true,
     
     // Memory and restart configuration - Aumentado para evitar reinicios
@@ -25,7 +25,7 @@ module.exports = {
       'node_modules',
       'logs',
       '*.log',
-      'gastos_robert.db',
+      'coopeenortol.db',
       'client/build',
       'reports',
       'backups'
@@ -77,8 +77,8 @@ module.exports = {
       user: 'nina',
       host: ['5.189.146.163'],
       ref: 'origin/main',
-      repo: 'https://github.com/robertfenyiner/gastos.git',
-      path: '/home/nina/gastos-robert',
+      repo: 'https://github.com/robertfenyiner/Coope.git',
+      path: '/opt/coopeenortol',
       'pre-deploy-local': '',
       'post-deploy': 'npm install --production && cd client && npm install && npm run build && cd .. && pm2 reload ecosystem.config.js --env production',
       'pre-setup': ''

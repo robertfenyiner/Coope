@@ -71,11 +71,11 @@ Coopeenortol es una plataforma integral de gestión para cooperativas de emplead
 
 ```bash
 # Descargar script de instalación automatizada
-wget https://raw.githubusercontent.com/coopeenortol/plataforma/main/scripts/install-coopeenortol-ubuntu.sh
+wget https://raw.githubusercontent.com/robertfenyiner/Coope/main/scripts/install-coopeenortol-ubuntu.sh
 
 # Ejecutar instalación
 chmod +x install-coopeenortol-ubuntu.sh
-sudo bash install-coopeenortol-ubuntu.sh
+bash install-coopeenortol-ubuntu.sh
 ```
 
 **Ver documentación completa**: [INSTALACION_UBUNTU_22.04.md](INSTALACION_UBUNTU_22.04.md)
@@ -130,7 +130,7 @@ pm2 restart coopeenortol-server
 ## 🤝 Soporte
 
 - **Email**: soporte@coopeenortol.com
-- **Issues**: [GitHub Issues](https://github.com/coopeenortol/plataforma/issues)
+- **Issues**: [GitHub Issues](https://github.com/robertfenyiner/Coope/issues)
 - **Documentación**: Ver archivos de documentación en el repositorio
 
 ---

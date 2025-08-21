@@ -194,10 +194,10 @@ sudo su - coopeenortol
 cd /opt/coopeenortol
 
 # Clonar el repositorio
-git clone https://github.com/coopeenortol/plataforma.git .
+git clone https://github.com/robertfenyiner/Coope.git .
 
 # O si usas SSH:
-# git clone git@github.com:coopeenortol/plataforma.git .
+# git clone git@github.com:robertfenyiner/Coope.git .
 ```
 
 ### 7.2 Configurar Variables de Entorno
@@ -751,8 +751,8 @@ Para configurar un entorno de desarrollo local, seguir estos pasos:
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/coopeenortol/plataforma.git
-cd plataforma
+git clone https://github.com/robertfenyiner/Coope.git
+cd Coope
 
 # Instalar dependencias
 npm run install-deps
