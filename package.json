@@ -1,0 +1,25 @@
+{
+  "name": "gastos-robert",
+  "version": "1.0.0",
+  "description": "Aplicación personal de gestión de gastos - Gastos Robert",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install-deps": "npm install && cd server && npm install && cd ../client && npm install",
+    "install-vps": "chmod +x scripts/install-ubuntu-22.04.sh && sudo scripts/install-ubuntu-22.04.sh"
+  },
+  "keywords": ["gastos", "finanzas", "presupuesto", "contabilidad", "robert"],
+  "author": "Robert Fenyiner",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robertfenyiner/gastos.git"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
