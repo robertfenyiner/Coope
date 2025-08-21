@@ -1,7 +1,7 @@
 {
-  "name": "gastos-robert-server",
-  "version": "1.0.0",
-  "description": "API Backend para Gastos Robert - Aplicación de gestión de gastos personales",
+  "name": "coopeenortol-server",
+  "version": "2.0.0",
+  "description": "API Backend para Coopeenortol - Plataforma de gestión cooperativa",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -20,8 +20,12 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
     "pdfkit": "^0.13.0",
-    "sqlite3": "^5.1.6",
-    "xlsx": "^0.18.5"
+    "pg": "^8.11.3",
+    "redis": "^4.6.10",
+    "xlsx": "^0.18.5",
+    "pg-pool": "^3.6.1",
+    "connect-redis": "^7.1.0",
+    "express-session": "^1.17.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

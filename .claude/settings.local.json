@@ -11,7 +11,9 @@
       "Bash(node:*)",
       "Bash(rm:*)",
       "Bash(npm run reload:server:*)",
-      "Bash(pm2 reload:*)"
+      "Bash(pm2 reload:*)",
+      "Bash(chmod:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

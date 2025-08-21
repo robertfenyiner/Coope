@@ -7,9 +7,12 @@ const express = require('express');
 const cors = require('cors');              // Control de acceso entre orígenes (CORS)
 const helmet = require('helmet');          // Headers de seguridad HTTP
 const rateLimit = require('express-rate-limit'); // Limitación de velocidad para prevenir ataques
+const session = require('express-session'); // Manejo de sesiones
+const RedisStore = require('connect-redis')(session); // Store Redis para sesiones
+const redis = require('redis');            // Cliente Redis
 const path = require('path');              // Manejo de rutas de archivos
 
-// Inicializar la base de datos SQLite y crear tablas si no existen
+// Inicializar la base de datos PostgreSQL y crear tablas si no existen
 // Esto debe ejecutarse temprano para asegurar que la BD esté lista
 require('./database');
 
@@ -31,6 +34,40 @@ const reportRoutes = require('./routes/reports');     // Generación de reportes
 const adminRoutes = require('./routes/admin');       // Panel de administración para usuarios admin
 const backupRoutes = require('./routes/backup');     // Sistema de respaldos de la base de datos
 const fileRoutes = require('./routes/files');       // Gestión de archivos adjuntos y fotos de perfil
+const asociadosRoutes = require('./routes/asociados'); // Módulo de gestión de asociados
+const documentosRoutes = require('./routes/documentos'); // Gestión de documentos de asociados
+
+// ========================================
+// CONFIGURACIÓN DE REDIS
+// ========================================
+
+// Configurar cliente Redis para sesión y caché
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+  password: process.env.REDIS_PASSWORD || undefined,
+  retry_strategy: (options) => {
+    if (options.error && options.error.code === 'ECONNREFUSED') {
+      console.error('El servidor Redis rechazó la conexión');
+    }
+    if (options.total_retry_time > 1000 * 60 * 60) {
+      console.error('Tiempo de reintento Redis agotado');
+      return new Error('Tiempo de reintento agotado');
+    }
+    if (options.attempt > 10) {
+      return undefined;
+    }
+    return Math.min(options.attempt * 100, 3000);
+  }
+});
+
+redisClient.on('connect', () => {
+  console.log(`[${new Date().toISOString()}] Conectado a Redis`);
+});
+
+redisClient.on('error', (err) => {
+  console.error(`[${new Date().toISOString()}] Error de Redis:`, err);
+});
 
 // Crear instancia de la aplicación Express
 const app = express();
@@ -161,6 +198,24 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// ========================================
+// CONFIGURACIÓN DE SESIONES CON REDIS
+// ========================================
+
+// Configurar sesiones con Redis store
+app.use(session({
+  store: new RedisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'coopeenortol-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS en producción
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+  },
+  name: 'coopeenortol.sid'
+}));
+
 // Middleware de parseo de body
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -174,15 +229,44 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/files', fileRoutes);
+// Nuevas rutas para el módulo de cooperativa
+app.use('/api/asociados', asociadosRoutes);
+app.use('/api/documentos', documentosRoutes);
 
 // Endpoint de verificación de salud
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    app: 'Gastos Robert'
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Verificar conexión a base de datos
+    const { verificarConexion } = require('./database');
+    const dbStatus = await verificarConexion();
+    
+    // Verificar conexión a Redis
+    let redisStatus = false;
+    try {
+      await redisClient.ping();
+      redisStatus = true;
+    } catch (err) {
+      redisStatus = false;
+    }
+    
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      version: '2.0.0',
+      app: 'Coopeenortol',
+      services: {
+        database: dbStatus ? 'connected' : 'disconnected',
+        redis: redisStatus ? 'connected' : 'disconnected'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      app: 'Coopeenortol',
+      error: err.message
+    });
+  }
 });
 
 // Test page for debugging uploads
@@ -255,7 +339,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`[${new Date().toISOString()}] Servidor ejecutándose en puerto ${PORT}`);
   console.log(`[${new Date().toISOString()}] Entorno: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`[${new Date().toISOString()}] Aplicación: Gastos Robert v1.0`);
+  console.log(`[${new Date().toISOString()}] Aplicación: Coopeenortol v2.0`);
   
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[${new Date().toISOString()}] API disponible en: http://localhost:${PORT}/api`);

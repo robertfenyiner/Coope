@@ -1,7 +1,7 @@
 {
-  "name": "gastos-robert",
-  "version": "1.0.0",
-  "description": "Aplicación personal de gestión de gastos - Gastos Robert",
+  "name": "coopeenortol",
+  "version": "2.0.0",
+  "description": "Plataforma de gestión cooperativa - Coopeenortol",
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
@@ -12,12 +12,12 @@
     "install-deps": "npm install && cd server && npm install && cd ../client && npm install",
     "install-vps": "chmod +x scripts/install-ubuntu-22.04.sh && sudo scripts/install-ubuntu-22.04.sh"
   },
-  "keywords": ["gastos", "finanzas", "presupuesto", "contabilidad", "robert"],
-  "author": "Robert Fenyiner",
+  "keywords": ["cooperativa", "asociados", "finanzas", "gestión", "coopeenortol"],
+  "author": "Coopeenortol",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/robertfenyiner/gastos.git"
+    "url": "https://github.com/coopeenortol/plataforma.git"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
