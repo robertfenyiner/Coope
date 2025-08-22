@@ -16,7 +16,10 @@
       "Bash(mv:*)",
       "Bash(cp:*)",
       "Bash(mkdir:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(sudo systemctl status:*)",
+      "Bash(redis-cli:*)",
+      "Bash(npm audit:*)"
     ],
     "deny": []
   }

@@ -9,10 +9,10 @@ module.exports = {
       NODE_ENV: 'development',
       PORT: 5000
     },
-    // Logging configuration
-    error_file: '/var/log/coopeenortol/error.log',
-    out_file: '/var/log/coopeenortol/access.log',
-    log_file: '/var/log/coopeenortol/combined.log',
+    // Logging configuration - usar rutas relativas para mejor compatibilidad
+    error_file: './logs/error.log',
+    out_file: './logs/access.log',
+    log_file: './logs/combined.log',
     time: true,
     
     // Memory and restart configuration - Aumentado para evitar reinicios

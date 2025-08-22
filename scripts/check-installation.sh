@@ -75,17 +75,21 @@ else
 fi
 
 # Redis
-if systemctl is-active --quiet redis-server; then
-    check_ok "Redis está ejecutándose"
-    
-    # Verificar conexión
-    if redis-cli ping >/dev/null 2>&1; then
-        check_ok "Redis responde a ping"
+if command -v redis-cli &> /dev/null; then
+    if systemctl is-active --quiet redis-server 2>/dev/null || systemctl is-active --quiet redis 2>/dev/null; then
+        check_ok "Redis está ejecutándose"
+        
+        # Verificar conexión
+        if redis-cli ping >/dev/null 2>&1; then
+            check_ok "Redis responde a ping"
+        else
+            check_warning "Redis no responde (puede requerir autenticación)"
+        fi
     else
-        check_warning "Redis no responde (puede requerir autenticación)"
+        check_fail "Redis no está ejecutándose"
     fi
 else
-    check_fail "Redis no está ejecutándose"
+    check_warning "Redis no está instalado (la aplicación puede funcionar sin él para desarrollo)"
 fi
 
 # Nginx

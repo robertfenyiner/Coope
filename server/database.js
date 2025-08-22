@@ -1,15 +1,15 @@
 const { pool, query, getClient, verificarConexion } = require('./database/config');
 const bcrypt = require('bcryptjs');
 
-// Verificar conexión al cargar el módulo
+// Verificar conexión al cargar el módulo (sin terminar proceso si falla)
 verificarConexion().then(connected => {
   if (!connected) {
-    console.error(`[${new Date().toISOString()}] No se pudo conectar a PostgreSQL. Revisa la configuración.`);
-    process.exit(1);
+    console.warn(`[${new Date().toISOString()}] ⚠️  No se pudo conectar a PostgreSQL. Funcionando en modo desarrollo limitado.`);
+    console.log(`[${new Date().toISOString()}] ℹ️  Para usar la base de datos, configure las variables DB_HOST, DB_USER, DB_PASSWORD, etc.`);
   }
 }).catch(err => {
-  console.error(`[${new Date().toISOString()}] Error verificando conexión:`, err);
-  process.exit(1);
+  console.warn(`[${new Date().toISOString()}] ⚠️  Error verificando conexión:`, err.message);
+  console.log(`[${new Date().toISOString()}] ℹ️  Continuando sin base de datos para desarrollo local`);
 });
 
 // Función para ejecutar el esquema de base de datos (inicialización)

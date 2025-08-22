@@ -8,7 +8,7 @@ const cors = require('cors');              // Control de acceso entre orígenes 
 const helmet = require('helmet');          // Headers de seguridad HTTP
 const rateLimit = require('express-rate-limit'); // Limitación de velocidad para prevenir ataques
 const session = require('express-session'); // Manejo de sesiones
-const RedisStore = require('connect-redis')(session); // Store Redis para sesiones
+const RedisStore = require('connect-redis').default; // Store Redis para sesiones (nueva API)
 const redis = require('redis');            // Cliente Redis
 const path = require('path');              // Manejo de rutas de archivos
 
@@ -38,36 +38,58 @@ const asociadosRoutes = require('./routes/asociados'); // Módulo de gestión de
 const documentosRoutes = require('./routes/documentos'); // Gestión de documentos de asociados
 
 // ========================================
-// CONFIGURACIÓN DE REDIS
+// CONFIGURACIÓN DE REDIS (OPCIONAL)
 // ========================================
 
-// Configurar cliente Redis para sesión y caché
-const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  retry_strategy: (options) => {
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      console.error('El servidor Redis rechazó la conexión');
-    }
-    if (options.total_retry_time > 1000 * 60 * 60) {
-      console.error('Tiempo de reintento Redis agotado');
-      return new Error('Tiempo de reintento agotado');
-    }
-    if (options.attempt > 10) {
-      return undefined;
-    }
-    return Math.min(options.attempt * 100, 3000);
+let redisClient = null;
+let redisAvailable = false;
+
+// Solo configurar Redis si no está deshabilitado
+if (process.env.DISABLE_REDIS !== 'true') {
+  try {
+    // Configurar cliente Redis para sesión y caché
+    redisClient = redis.createClient({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: process.env.REDIS_PORT || 6379,
+      password: process.env.REDIS_PASSWORD || undefined,
+      retry_strategy: (options) => {
+        if (options.error && options.error.code === 'ECONNREFUSED') {
+          console.warn(`[${new Date().toISOString()}] Redis no disponible - funcionando sin caché`);
+          return false; // No reintentar
+        }
+        if (options.total_retry_time > 1000 * 30) {
+          console.warn(`[${new Date().toISOString()}] Redis no disponible después de 30s - continuando sin él`);
+          return false;
+        }
+        if (options.attempt > 3) {
+          return false;
+        }
+        return Math.min(options.attempt * 1000, 3000);
+      }
+    });
+
+    redisClient.on('connect', () => {
+      console.log(`[${new Date().toISOString()}] ✅ Conectado a Redis`);
+      redisAvailable = true;
+    });
+
+    redisClient.on('error', (err) => {
+      console.warn(`[${new Date().toISOString()}] ⚠️  Redis no disponible:`, err.message);
+      redisAvailable = false;
+    });
+
+    redisClient.on('end', () => {
+      console.warn(`[${new Date().toISOString()}] ⚠️  Conexión Redis cerrada - funcionando sin caché`);
+      redisAvailable = false;
+    });
+  } catch (error) {
+    console.warn(`[${new Date().toISOString()}] ⚠️  No se pudo configurar Redis:`, error.message);
+    redisClient = null;
+    redisAvailable = false;
   }
-});
-
-redisClient.on('connect', () => {
-  console.log(`[${new Date().toISOString()}] Conectado a Redis`);
-});
-
-redisClient.on('error', (err) => {
-  console.error(`[${new Date().toISOString()}] Error de Redis:`, err);
-});
+} else {
+  console.log(`[${new Date().toISOString()}] ℹ️  Redis deshabilitado por configuración`);
+}
 
 // Crear instancia de la aplicación Express
 const app = express();
@@ -199,12 +221,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // ========================================
-// CONFIGURACIÓN DE SESIONES CON REDIS
+// CONFIGURACIÓN DE SESIONES
 // ========================================
 
-// Configurar sesiones con Redis store
-app.use(session({
-  store: new RedisStore({ client: redisClient }),
+// Configurar sesiones con Redis store si está disponible, sino usar memoria
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'coopeenortol-session-secret',
   resave: false,
   saveUninitialized: false,
@@ -214,7 +235,20 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 horas
   },
   name: 'coopeenortol.sid'
-}));
+};
+
+// Usar Redis store si está disponible, sino usar memoria
+if (redisClient && redisAvailable !== false) {
+  sessionConfig.store = new RedisStore({ client: redisClient });
+  console.log(`[${new Date().toISOString()}] ℹ️  Sesiones configuradas con Redis store`);
+} else {
+  console.log(`[${new Date().toISOString()}] ⚠️  Sesiones configuradas con memoria (no recomendado para producción)`);
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(`[${new Date().toISOString()}] ⚠️  ADVERTENCIA: Usando sesiones en memoria en producción - instalar Redis es recomendado`);
+  }
+}
+
+app.use(session(sessionConfig));
 
 // Middleware de parseo de body
 app.use(express.json({ limit: '10mb' }));
@@ -240,13 +274,15 @@ app.get('/api/health', async (req, res) => {
     const { verificarConexion } = require('./database');
     const dbStatus = await verificarConexion();
     
-    // Verificar conexión a Redis
-    let redisStatus = false;
-    try {
-      await redisClient.ping();
-      redisStatus = true;
-    } catch (err) {
-      redisStatus = false;
+    // Verificar conexión a Redis si está configurado
+    let redisStatus = 'disabled';
+    if (redisClient) {
+      try {
+        await redisClient.ping();
+        redisStatus = 'connected';
+      } catch (err) {
+        redisStatus = 'disconnected';
+      }
     }
     
     res.json({ 
@@ -256,7 +292,7 @@ app.get('/api/health', async (req, res) => {
       app: 'Coopeenortol',
       services: {
         database: dbStatus ? 'connected' : 'disconnected',
-        redis: redisStatus ? 'connected' : 'disconnected'
+        redis: redisStatus
       }
     });
   } catch (err) {

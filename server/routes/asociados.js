@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { profileUpload } = require('../middleware/upload');
 const { query, getClient } = require('../database');
 
 // ======================================
@@ -424,7 +424,7 @@ router.put('/:id', auth, async (req, res) => {
  * @desc    Subir fotografía del asociado
  * @access  Privado
  */
-router.post('/:id/fotografia', auth, upload.single('fotografia'), async (req, res) => {
+router.post('/:id/fotografia', auth, profileUpload.single('fotografia'), async (req, res) => {
   try {
     const { id } = req.params;
 

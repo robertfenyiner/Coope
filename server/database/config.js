@@ -26,13 +26,19 @@ pool.on('error', (err) => {
 
 // Función para verificar la conexión
 const verificarConexion = async () => {
+  // Si la base de datos está deshabilitada, simular conexión exitosa
+  if (process.env.DB_HOST === undefined || process.env.DISABLE_DATABASE === 'true') {
+    console.log(`[${new Date().toISOString()}] ⚠️  Base de datos deshabilitada para desarrollo local`);
+    return false;
+  }
+  
   try {
     const client = await pool.connect();
-    console.log(`[${new Date().toISOString()}] Conexión exitosa a PostgreSQL - Base de datos: ${dbConfig.database}`);
+    console.log(`[${new Date().toISOString()}] ✅ Conexión exitosa a PostgreSQL - Base de datos: ${dbConfig.database}`);
     client.release();
     return true;
   } catch (err) {
-    console.error(`[${new Date().toISOString()}] Error conectando a PostgreSQL:`, err.message);
+    console.error(`[${new Date().toISOString()}] ❌ Error conectando a PostgreSQL:`, err.message);
     return false;
   }
 };

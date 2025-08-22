@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { expenseUpload } = require('../middleware/upload');
 const { query, getClient } = require('../database');
 const path = require('path');
 const fs = require('fs');
@@ -144,7 +144,7 @@ router.get('/asociado/:asociadoId', auth, async (req, res) => {
  * @desc    Subir documento de asociado
  * @access  Privado
  */
-router.post('/subir', auth, upload.single('documento'), async (req, res) => {
+router.post('/subir', auth, expenseUpload.single('documento'), async (req, res) => {
   try {
     const { asociado_id, tipo_documento_id } = req.body;
 

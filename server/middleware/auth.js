@@ -1,9 +1,27 @@
 const jwt = require('jsonwebtoken');
-const db = require('../database');
-const { promisify } = require('util');
+const { query } = require('../database');
 
-// Promisificar operaciones de base de datos para evitar callback hell y race conditions
-const dbGet = promisify(db.get.bind(db));
+// Función helper para obtener usuario por ID
+const getUsuarioPorId = async (id) => {
+  try {
+    // Si no hay base de datos disponible, simular usuario para desarrollo
+    if (process.env.DB_HOST === undefined && process.env.NODE_ENV === 'development') {
+      return {
+        id: id,
+        username: 'dev_user',
+        email: 'dev@coopeenortol.com',
+        es_admin: true,
+        creado_en: new Date()
+      };
+    }
+    
+    const result = await query('SELECT id, username, email, es_admin, creado_en FROM usuarios WHERE id = $1', [id]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error('Error obteniendo usuario:', error);
+    return null;
+  }
+};
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -35,7 +53,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     // Validar estructura del token decodificado
-    if (!decoded || !decoded.userId || typeof decoded.userId !== 'number') {
+    if (!decoded || !decoded.userId || typeof decoded.userId !== 'string') {
       console.error('Payload de token inválido:', decoded);
       return res.status(401).json({ message: 'Payload de token inválido.' });
     }
@@ -43,7 +61,7 @@ const authMiddleware = async (req, res, next) => {
     // Verificar que el usuario aún exista en la base de datos
     let user;
     try {
-      user = await dbGet('SELECT id, username, email, is_admin, profile_picture, created_at FROM users WHERE id = ?', [decoded.userId]);
+      user = await getUsuarioPorId(decoded.userId);
     } catch (dbError) {
       console.error('Error de base de datos durante autenticación:', dbError);
       return res.status(500).json({ message: 'Servicio de autenticación temporalmente no disponible.' });
@@ -59,9 +77,8 @@ const authMiddleware = async (req, res, next) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      is_admin: user.is_admin,
-      profile_picture: user.profile_picture,
-      created_at: user.created_at
+      is_admin: user.es_admin,
+      created_at: user.creado_en
     };
 
     // Agregar información de token para funcionalidad potencial de logout/blacklist

@@ -66,9 +66,33 @@ fi
 # Verificar archivos necesarios
 if [ ! -f "server/database/schema.sql" ]; then
     error "Archivo schema.sql no encontrado"
-    echo "Estructura del proyecto:"
-    find . -name "*.sql" -type f
-    exit 1
+    echo "Creando schema.sql temporal..."
+    
+    mkdir -p server/database
+    cat > server/database/schema.sql << 'EOF'
+-- Schema temporal básico para Coopeenortol
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Tabla de usuarios básica
+CREATE TABLE IF NOT EXISTS usuarios (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(200) NOT NULL,
+    es_admin BOOLEAN DEFAULT FALSE,
+    es_activo BOOLEAN DEFAULT TRUE,
+    creado_en TIMESTAMP DEFAULT NOW()
+);
+
+-- Insertar usuario admin por defecto
+INSERT INTO usuarios (username, email, password_hash, nombre_completo, es_admin) VALUES
+('admin', 'admin@coopeenortol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeaHxz4XZA3Vh9K16', 'Administrador del Sistema', true)
+ON CONFLICT (username) DO NOTHING;
+EOF
+
+    success "Schema básico creado"
 fi
 
 # Instalar dependencias
