@@ -187,6 +187,23 @@ success "PostgreSQL configurado correctamente"
 log "Instalando Redis..."
 sudo apt install -y redis-server
 
+# --- Solución automática de permisos y procesos Redis ---
+log "Verificando permisos y procesos de Redis antes de reiniciar..."
+# Asegurar permisos correctos en el directorio de trabajo
+if [ -d "/var/lib/redis" ]; then
+    sudo chown redis:redis /var/lib/redis
+    sudo chmod 770 /var/lib/redis
+fi
+# Matar procesos Redis atascados si existen
+if pgrep redis-server >/dev/null; then
+    for pid in $(pgrep redis-server); do
+        sudo kill -9 $pid || true
+    done
+    # Eliminar archivo de lock si existe
+    sudo rm -f /var/run/redis/redis-server.pid
+fi
+log "Permisos y procesos de Redis verificados."
+
 # Configurar Redis
 sudo bash -c "cat > /etc/redis/redis.conf << EOF
 bind 127.0.0.1 ::1
