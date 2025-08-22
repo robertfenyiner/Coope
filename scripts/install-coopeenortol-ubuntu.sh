@@ -493,7 +493,7 @@ server {
     location / {
         root $APP_DIR/client/build;
         try_files \$uri \$uri/ /index.html;
-        
+
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
             expires 1y;
             add_header Cache-Control "public, immutable";
