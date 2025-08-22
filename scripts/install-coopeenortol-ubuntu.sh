@@ -68,7 +68,7 @@ read -p "Ingrese email para notificaciones: " ADMIN_EMAIL
 # Configuraciones por defecto
 DB_NAME="coopeenortol_db"
 DB_USER="coopeenortol_user"
-APP_USER="coopeenortol"
+APP_USER="coope"
 APP_DIR="/opt/coopeenortol"
 
 echo
@@ -90,16 +90,31 @@ sudo apt install -y curl wget git unzip software-properties-common \
 # CREACIÓN DE USUARIO DE APLICACIÓN
 # ======================================
 
-log "Creando usuario de aplicación..."
+log "Configurando usuario de aplicación..."
 if ! id "$APP_USER" &>/dev/null; then
+    # Crear el directorio primero si no existe
+    sudo mkdir -p $APP_DIR
+    
+    # Crear usuario del sistema
     sudo adduser --system --group --home $APP_DIR --shell /bin/bash $APP_USER
     success "Usuario $APP_USER creado"
 else
     warning "Usuario $APP_USER ya existe"
+    # Asegurar que el directorio existe
+    sudo mkdir -p $APP_DIR
 fi
 
-sudo mkdir -p $APP_DIR
+# Configurar permisos del directorio
 sudo chown -R $APP_USER:$APP_USER $APP_DIR
+sudo chmod 755 $APP_DIR
+
+# Verificar que el usuario puede acceder al directorio
+sudo -u $APP_USER test -w $APP_DIR || {
+    error "El usuario $APP_USER no puede escribir en $APP_DIR"
+    exit 1
+}
+
+success "Usuario y directorio configurados correctamente"
 
 # ======================================
 # INSTALACIÓN DE POSTGRESQL
@@ -113,10 +128,33 @@ sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
 log "Configurando PostgreSQL..."
-# Crear base de datos y usuario
+# Crear base de datos y usuario (con manejo de errores si ya existen)
 sudo -u postgres psql << EOF
-CREATE DATABASE $DB_NAME;
-CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASSWORD';
+-- Intentar crear base de datos
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME') THEN
+        CREATE DATABASE $DB_NAME;
+        RAISE NOTICE 'Base de datos $DB_NAME creada exitosamente';
+    ELSE
+        RAISE NOTICE 'Base de datos $DB_NAME ya existe, continuando...';
+    END IF;
+END
+\$\$;
+
+-- Intentar crear usuario
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '$DB_USER') THEN
+        CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASSWORD';
+        RAISE NOTICE 'Usuario $DB_USER creado exitosamente';
+    ELSE
+        RAISE NOTICE 'Usuario $DB_USER ya existe, continuando...';
+    END IF;
+END
+\$\$;
+
+-- Otorgar privilegios
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
 ALTER USER $DB_USER CREATEDB;
 \q
@@ -212,14 +250,34 @@ success "Firewall configurado"
 log "Clonando repositorio de Coopeenortol..."
 sudo -u $APP_USER bash << EOF
 cd $APP_DIR
+
+# Verificar si ya existe un repositorio
 if [ -d ".git" ]; then
+    echo "Repositorio existente encontrado, actualizando..."
     git pull origin main
 else
+    echo "Clonando repositorio desde GitHub..."
     git clone https://github.com/robertfenyiner/Coope.git .
+    
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: Falló la clonación del repositorio"
+        echo "Verifique que el repositorio esté público y accesible"
+        exit 1
+    fi
 fi
+
+# Verificar que se clonó correctamente
+if [ ! -f "package.json" ]; then
+    echo "ERROR: El repositorio no se clonó correctamente"
+    echo "Contenido del directorio:"
+    ls -la
+    exit 1
+fi
+
+echo "Repositorio clonado/actualizado exitosamente"
 EOF
 
-success "Repositorio clonado"
+success "Repositorio configurado"
 
 # ======================================
 # CONFIGURACIÓN DE VARIABLES DE ENTORNO
@@ -274,13 +332,24 @@ success "Variables de entorno configuradas"
 log "Instalando dependencias de la aplicación..."
 sudo -u $APP_USER bash << EOF
 cd $APP_DIR
-npm install
 
+echo "Instalando dependencias del proyecto principal..."
+npm install --production
+
+echo "Instalando dependencias del servidor..."
 cd server
-npm install
+npm install --production
 
+echo "Instalando dependencias del cliente..."
 cd ../client
 npm install
+
+# Intentar corregir vulnerabilidades automáticamente
+echo "Verificando y corrigiendo vulnerabilidades de seguridad..."
+npm audit fix || echo "Algunas vulnerabilidades no pudieron ser corregidas automáticamente"
+
+cd ..
+echo "Instalación de dependencias completada"
 EOF
 
 success "Dependencias instaladas"
@@ -291,9 +360,28 @@ success "Dependencias instaladas"
 
 log "Inicializando base de datos..."
 sudo -u $APP_USER bash << EOF
-cd $APP_DIR/server
+cd $APP_DIR
+
+# Verificar que el archivo schema.sql existe
+if [ ! -f "server/database/schema.sql" ]; then
+    echo "ERROR: No se encontró el archivo server/database/schema.sql"
+    echo "Contenido del directorio server:"
+    ls -la server/ || echo "Directorio server no existe"
+    echo "Contenido del directorio server/database:"
+    ls -la server/database/ || echo "Directorio server/database no existe"
+    exit 1
+fi
+
+echo "Ejecutando schema de base de datos desde: \$(pwd)/server/database/schema.sql"
 export PGPASSWORD=$DB_PASSWORD
-psql -h localhost -U $DB_USER -d $DB_NAME -f database/schema.sql
+psql -h localhost -U $DB_USER -d $DB_NAME -f server/database/schema.sql
+
+if [ \$? -eq 0 ]; then
+    echo "Schema de base de datos ejecutado exitosamente"
+else
+    echo "ERROR: Falló la ejecución del schema de base de datos"
+    exit 1
+fi
 EOF
 
 success "Base de datos inicializada"

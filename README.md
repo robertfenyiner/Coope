@@ -70,12 +70,34 @@ Coopeenortol es una plataforma integral de gestión para cooperativas de emplead
 ### Para Ubuntu Server 22.04 (Recomendado)
 
 ```bash
+# Crear usuario para la aplicación
+sudo adduser coope
+sudo usermod -aG sudo coope
+sudo su - coope
+
 # Descargar script de instalación automatizada
 wget https://raw.githubusercontent.com/robertfenyiner/Coope/main/scripts/install-coopeenortol-ubuntu.sh
 
 # Ejecutar instalación
 chmod +x install-coopeenortol-ubuntu.sh
 bash install-coopeenortol-ubuntu.sh
+```
+
+### Solución de Problemas
+
+Si la instalación automática falla, usar scripts auxiliares:
+
+```bash
+# Verificar estado del sistema
+wget https://raw.githubusercontent.com/robertfenyiner/Coope/main/scripts/check-installation.sh
+chmod +x check-installation.sh
+bash check-installation.sh
+
+# Instalación manual (si automática falla)
+wget https://raw.githubusercontent.com/robertfenyiner/Coope/main/scripts/install-manual.sh
+chmod +x install-manual.sh
+sudo su - coope
+bash install-manual.sh
 ```
 
 **Ver documentación completa**: [INSTALACION_UBUNTU_22.04.md](INSTALACION_UBUNTU_22.04.md)
