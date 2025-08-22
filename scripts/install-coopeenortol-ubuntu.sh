@@ -471,6 +471,10 @@ else
 fi
 
 sudo bash << EOF
+
+# Eliminar configuraciones antiguas antes de crear la nueva
+sudo rm -f /etc/nginx/sites-available/coopeenortol
+sudo rm -f /etc/nginx/sites-enabled/coopeenortol
 cat > /etc/nginx/sites-available/coopeenortol << EOL
 server {
     listen 80;
