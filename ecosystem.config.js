@@ -1,77 +1,67 @@
 module.exports = {
-  apps: [{
-    name: 'coopeenortol-server',
-    script: './server/index.js',
-    cwd: process.cwd() || '/opt/coopeenortol',
-    instances: 1,
-    exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'development',
-      PORT: 5000
-    },
-    // Logging configuration - usar rutas relativas para mejor compatibilidad
-    error_file: './logs/error.log',
-    out_file: './logs/access.log',
-    log_file: './logs/combined.log',
-    time: true,
-    
-    // Memory and restart configuration - Aumentado para evitar reinicios
-    max_memory_restart: '1G',
-    node_args: '--max-old-space-size=1024',
-    
-    // Restart configuration - Configuración más estable
-    watch: false,
-    ignore_watch: [
-      'node_modules',
-      'logs',
-      '*.log',
-      'coopeenortol.db',
-      'client/build',
-      'reports',
-      'backups'
-    ],
-    restart_delay: 10000,
-    max_restarts: 5,
-    min_uptime: '30s',
-    
-    // Auto restart on file changes (development only)
-    watch_delay: 1000,
-    
-    // Graceful shutdown - Más tiempo para cierre limpio
-    kill_timeout: 10000,
-    wait_ready: false,
-    listen_timeout: 15000,
-    
-    // Health monitoring
-    health_check_grace_period: 5000,
-    
-    // NO cron restart automático - esto podría ser el problema
-    // cron_restart: '0 3 * * *',
-    
-    // Merge logs from all instances
-    merge_logs: true,
-    
-    // Source map support
-    source_map_support: true,
-    
-    // Instance variables
-    instance_var: 'INSTANCE_ID',
-    
-    // Evitar reinicios frecuentes
-    exponential_backoff_restart_delay: 100,
-    
-    // Autorestart solo en errores críticos
-    autorestart: true,
-    
-    // Variables de entorno adicionales para estabilidad
-    env_production: {
-      NODE_ENV: 'production',
-      PORT: 5000,
-      JWT_EXPIRES_IN: '7d',
-      UV_THREADPOOL_SIZE: 16
+  apps: [
+    {
+      name: 'coopeenortol-server',
+      script: './server/index.js',
+      cwd: '/opt/coopeenortol',
+      instances: 2,
+      exec_mode: 'cluster',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 5000,
+        DB_HOST: 'localhost',
+        DB_PORT: 5432,
+        DB_NAME: 'coopeenortol_db',
+        DB_USER: 'coopeenortol_user',
+        DB_PASSWORD: 'robert0217',
+        REDIS_HOST: 'localhost',
+        REDIS_PORT: 6379,
+        REDIS_PASSWORD: 'robert0217',
+        JWT_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
+        JWT_EXPIRES_IN: '24h',
+        SMTP_HOST: 'smtp.gmail.com',
+        SMTP_PORT: 587,
+        SMTP_USER: 'robertfenyiner@hotmail.com',
+        SMTP_PASS: 'tu_password_de_aplicacion',
+        FROM_EMAIL: 'noreply@coopeenortol.com',
+        FROM_NAME: 'Coopeenortol',
+        UPLOAD_DIR: '/opt/coopeenortol/uploads',
+        MAX_FILE_SIZE: 10485760,
+        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx'
+      },
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 5000,
+        DB_HOST: 'localhost',
+        DB_PORT: 5432,
+        DB_NAME: 'coopeenortol_db',
+        DB_USER: 'coopeenortol_user',
+        DB_PASSWORD: 'robert0217',
+        REDIS_HOST: 'localhost',
+        REDIS_PORT: 6379,
+        REDIS_PASSWORD: 'robert0217',
+        JWT_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
+        JWT_EXPIRES_IN: '24h',
+        SMTP_HOST: 'smtp.gmail.com',
+        SMTP_PORT: 587,
+        SMTP_USER: 'robertfenyiner@hotmail.com',
+        SMTP_PASS: 'tu_password_de_aplicacion',
+        FROM_EMAIL: 'noreply@coopeenortol.com',
+        FROM_NAME: 'Coopeenortol',
+        UPLOAD_DIR: '/opt/coopeenortol/uploads',
+        MAX_FILE_SIZE: 10485760,
+        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx'
+      },
+      error_file: '/opt/coopeenortol/logs/err.log',
+      out_file: '/opt/coopeenortol/logs/out.log',
+      log_file: '/opt/coopeenortol/logs/combined.log',
+      time: true,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: '10s',
+      max_memory_restart: '1G'
     }
-  }],
-
+  ],
   deploy: {
     production: {
       user: 'nina',
