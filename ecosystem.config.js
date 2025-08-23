@@ -19,6 +19,7 @@ module.exports = {
         REDIS_PASSWORD: 'robert0217',
         JWT_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
         JWT_EXPIRES_IN: '24h',
+        SESSION_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
         SMTP_HOST: 'smtp.gmail.com',
         SMTP_PORT: 587,
         SMTP_USER: 'robertfenyiner@hotmail.com',
@@ -27,7 +28,8 @@ module.exports = {
         FROM_NAME: 'Coopeenortol',
         UPLOAD_DIR: '/opt/coopeenortol/uploads',
         MAX_FILE_SIZE: 10485760,
-        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx'
+        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx',
+        ALLOWED_ORIGINS: 'http://localhost:3000,http://127.0.0.1:3000,http://5.189.146.163'
       },
       env_production: {
         NODE_ENV: 'production',
@@ -42,6 +44,7 @@ module.exports = {
         REDIS_PASSWORD: 'robert0217',
         JWT_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
         JWT_EXPIRES_IN: '24h',
+        SESSION_SECRET: 'f49ac18e618eed3585229729c034fbcc5458666ca559e7c5da3c3c6dc4bc0d33',
         SMTP_HOST: 'smtp.gmail.com',
         SMTP_PORT: 587,
         SMTP_USER: 'robertfenyiner@hotmail.com',
@@ -50,7 +53,8 @@ module.exports = {
         FROM_NAME: 'Coopeenortol',
         UPLOAD_DIR: '/opt/coopeenortol/uploads',
         MAX_FILE_SIZE: 10485760,
-        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx'
+        ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx',
+        ALLOWED_ORIGINS: 'http://localhost:3000,http://127.0.0.1:3000,http://5.189.146.163'
       },
       error_file: '/opt/coopeenortol/logs/err.log',
       out_file: '/opt/coopeenortol/logs/out.log',
