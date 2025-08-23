@@ -29,7 +29,7 @@ module.exports = {
         UPLOAD_DIR: '/opt/coopeenortol/uploads',
         MAX_FILE_SIZE: 10485760,
         ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx',
-        ALLOWED_ORIGINS: 'http://localhost:3000,http://127.0.0.1:3000,http://5.189.146.163'
+        PUBLIC_IP: '5.189.146.163'
       },
       env_production: {
         NODE_ENV: 'production',
@@ -54,7 +54,7 @@ module.exports = {
         UPLOAD_DIR: '/opt/coopeenortol/uploads',
         MAX_FILE_SIZE: 10485760,
         ALLOWED_EXTENSIONS: 'jpg,jpeg,png,pdf,doc,docx',
-        ALLOWED_ORIGINS: 'http://localhost:3000,http://127.0.0.1:3000,http://5.189.146.163'
+        PUBLIC_IP: '5.189.146.163'
       },
       error_file: '/opt/coopeenortol/logs/err.log',
       out_file: '/opt/coopeenortol/logs/out.log',
